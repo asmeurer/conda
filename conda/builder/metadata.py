@@ -9,7 +9,7 @@ from conda.utils import memoized, md5_file
 import conda.config as config
 from conda.resolve import MatchSpec
 
-from conda.builder.config import CONDA_PY, CONDA_NPY
+from conda.builder.config import CONDA_PY, CONDA_NPY, _int
 
 try:
     import yaml
@@ -24,7 +24,7 @@ def ns_cfg():
     py = CONDA_PY
     np = CONDA_NPY
     for x in py, np:
-        assert isinstance(x, int), x
+        assert isinstance(x, _int), x
     return dict(
         linux = plat.startswith('linux-'),
         linux32 = bool(plat == 'linux-32'),

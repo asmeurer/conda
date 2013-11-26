@@ -6,6 +6,7 @@
 
 from __future__ import print_function, division, absolute_import
 
+import os
 import sys
 
 from conda.cli import common
@@ -68,6 +69,13 @@ def configure_parser(sub_parsers):
         default=False,
         dest='pypi',
         help="Try to build conda package from pypi")
+    p.add_argument(
+        '--build-all',
+        action='store_true',
+        default=False,
+        help="Build all combinations of Python/NumPy versions",
+        )
+
     p.set_defaults(func=execute)
 
 
@@ -120,6 +128,8 @@ def execute(args, parser):
     from conda.builder.config import croot
     from conda.builder.metadata import MetaData
 
+    if args.build_all and os.getenv('CONDA_PY') or os.getenv("CONDA_NPY"):
+        sys.exit("Cannot have CONDA_PY or CONDA_NPY environment variables set with --build-all flag")
     with Locked(croot):
         for arg in args.recipe:
             if isfile(arg):
@@ -166,6 +176,24 @@ def execute(args, parser):
                 source.provide(m.path, m.get_section('source'))
                 print('Source tree in:', source.get_dir())
             else:
+                if args.build_all:
+                    # TODO: Don't stop if one combination fails.
+                    depends = [ms.name for ms in m.ms_depends('build')]
+                    py_combs = ['26', '27', '33'] if 'python' in depends else [build.config.CONDA_PY]
+                    npy_combs = ['16', '17'] if 'numpy' in depends else [build.config.CONDA_NPY]
+                    for py in py_combs:
+                        for npy in npy_combs:
+                            build.config.CONDA_PY.i = py
+                            build.config.CONDA_NPY.i = npy
+
+                            build.build(m, pypi=args.pypi)
+                            if not args.notest:
+                                build.test(m, pypi=args.pypi)
+                            if need_cleanup:
+                                shutil.rmtree(recipe_dir)
+
+                            handle_binstar_upload(build.bldpkg_path(m), args)
+
                 build.build(m, pypi=args.pypi)
                 if not args.notest:
                     build.test(m, pypi=args.pypi)

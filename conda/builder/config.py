@@ -7,8 +7,36 @@ from os.path import abspath, expanduser, join
 import conda.config as cc
 
 
-CONDA_PY = int(os.getenv('CONDA_PY', cc.default_python.replace('.', '')))
-CONDA_NPY = int(os.getenv('CONDA_NPY', 17))
+from functools import total_ordering
+
+@total_ordering
+class _int(object):
+    """
+    Mutable int.
+
+    Allows CONDA_PY to be modified globally without restarting conda. Modify
+    by changing the ``i`` attribute.
+
+    """
+    def __init__(self, arg):
+        self.i = int(arg)
+
+    def __int__(self):
+        return self.i
+
+    def __lt__(self, other):
+        if isinstance(other, _int):
+            return self.i < other.i
+        return self.i < other
+
+    def __str__(self):
+        return str(self.i)
+
+    def __repr__(self):
+        return repr(self.i)
+
+CONDA_PY = _int(os.getenv('CONDA_PY', cc.default_python.replace('.', '')))
+CONDA_NPY = _int(os.getenv('CONDA_NPY', 17))
 PY3K = int(bool(CONDA_PY >= 30))
 
 if cc.root_writable:
