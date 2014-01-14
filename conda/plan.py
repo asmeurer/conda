@@ -50,6 +50,7 @@ def print_dists(dists_extras):
 def split_linkarg(arg):
     "Return tuple(dist, pkgs_dir, linktype)"
     args = arg.split()
+    print(args)
     if len(args) == 1:
         return args[0], config.pkgs_dirs[0], install.LINK_HARD
     elif len(args) == 3:
