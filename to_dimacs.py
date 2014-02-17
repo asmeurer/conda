@@ -15,8 +15,8 @@ def write_opb(clauses, path):
     with open(path, 'w') as fo:
         fo.write("* #variable= %d #constraint= %d\n" % (n_vars, len(clauses)))
         fo.write("* Add min condition here, like\n")
-        fo.write("* min: 1 x1 -1 x3;\n")
+        fo.write("* min: 1*x1 -1*x3;\n")
         for clause in clauses:
             for lit in clause:
-                fo.write("+1 x%d " % lit)
+                fo.write("+1*x%d " % lit)
             fo.write(">= 1;\n")
