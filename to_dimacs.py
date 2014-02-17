@@ -8,14 +8,17 @@ def write_cnf(clauses, path):
                 fo.write('%d ' % lit)
             fo.write('0\n')
 
-def write_opb(clauses, path):
+def write_opb(clauses, path, min_expr=None):
     # A clause like [1, -3, 5] is the same as +1 x1 +1 ~x3 +1 x5 >= 1
     n_vars = max(max(abs(lit) for lit in clause)
                  for clause in clauses)
     with open(path, 'w') as fo:
         fo.write("* #variable= %d #constraint= %d\n" % (n_vars, len(clauses)))
-        fo.write("* Add min condition here, like\n")
-        fo.write("* min: 1*x1 -1*x3;\n")
+        if not min_expr:
+            fo.write("* Add min condition here, like\n")
+            fo.write("* min: 1*x1 -1*x3;\n")
+        else:
+            fo.write('min: %s\n' % min_expr)
         for clause in clauses:
             end = 1
             for lit in clause:
