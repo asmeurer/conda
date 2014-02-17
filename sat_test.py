@@ -14,14 +14,18 @@ def min_expr(c2p, p2c):
     for p in p2c:
         name = p.rsplit('-', 2)[0]
         P = Package(p, index[p])
-        print(P.norm_version)
         packages_by_name[name].append(P)
 
     for name in packages_by_name:
         # XXX: This works with np and py by sorting the build string
         packages_by_name[name].sort()
 
-    return packages_by_name
+    max_N = max((len(i) for i in packages_by_name.values()))
+    min_str = ''
+    for name in packages_by_name:
+        for c, P in zip(range(-max_N, 0), packages_by_name[name]):
+            min_str += '%d*x%d ' % (c, p2c[P.fn])
+    return min_str
 
 if __name__ == '__main__':
     import to_dimacs
