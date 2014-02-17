@@ -31,13 +31,14 @@ if __name__ == '__main__':
     import to_dimacs
     to_dimacs.write_cnf(base_clauses1, 'base_clauses1.cnf')
     to_dimacs.write_cnf(all_solutions_clauses1, 'all_solutions_clauses1.cnf')
-    to_dimacs.write_opb(base_clauses1, 'base_clauses1.opb')
-    to_dimacs.write_opb(all_solutions_clauses1, 'all_solutions_clauses1.opb')
+    expr = min_expr(base_clauses_to_packages1, base_packages_to_clauses1)
+    to_dimacs.write_opb(base_clauses1, 'base_clauses1.opb', min_expr=expr)
+    expr = min_expr(all_solutions_clauses_to_packages1, all_solutions_packages_to_clauses1)
+    to_dimacs.write_opb(all_solutions_clauses1, 'all_solutions_clauses1.opb', min_expr=expr)
 
     to_dimacs.write_cnf(base_clauses2, 'base_clauses2.cnf')
     to_dimacs.write_cnf(all_solutions_clauses2, 'all_solutions_clauses2.cnf')
-    to_dimacs.write_opb(base_clauses2, 'base_clauses2.opb')
-    to_dimacs.write_opb(all_solutions_clauses2, 'all_solutions_clauses2.opb')
-
-    import pprint
-    pprint.pprint(min_expr(base_clauses_to_packages1, base_packages_to_clauses1))
+    expr = min_expr(base_clauses_to_packages2, base_packages_to_clauses2)
+    to_dimacs.write_opb(base_clauses2, 'base_clauses2.opb', min_expr=expr)
+    expr = min_expr(all_solutions_clauses_to_packages2, all_solutions_packages_to_clauses2)
+    to_dimacs.write_opb(all_solutions_clauses2, 'all_solutions_clauses2.opb', min_expr=expr)
