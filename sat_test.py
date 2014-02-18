@@ -24,7 +24,7 @@ def min_expr(c2p, p2c):
     min_str = ''
     for name in packages_by_name:
         for c, P in zip(range(-max_N, 0), packages_by_name[name]):
-            min_str += '%+d*x%d ' % (c, p2c[P.fn])
+            min_str += '%+d x%d ' % (c, p2c[P.fn])
     return min_str
 
 if __name__ == '__main__':
