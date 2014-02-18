@@ -16,7 +16,7 @@ def write_opb(clauses, path, min_expr=None):
         fo.write("* #variable= %d #constraint= %d\n" % (n_vars, len(clauses)))
         if not min_expr:
             fo.write("* Add min condition here, like\n")
-            fo.write("* min: 1*x1 -1*x3;\n")
+            fo.write("* min: +1*x1 -1*x3 ;\n")
         else:
             fo.write('min: %s;\n' % min_expr)
         for clause in clauses:
@@ -28,4 +28,4 @@ def write_opb(clauses, path, min_expr=None):
                     # ~x = 1 - x
                     fo.write("-1*x%d " % -lit)
                     end -= 1
-            fo.write(">= %d;\n" % end)
+            fo.write(">= %+d;\n" % end)
