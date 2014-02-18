@@ -53,7 +53,7 @@ if __name__ == '__main__':
             d = globals()['base_clauses_to_packages' + sys.argv[2]]
         else:
             sys.exit("First argument should be 'all' or 'base'")
-        S = input("The solution: ")
+        S = sys.argv[3]
         for c in S.split():
             if not c.startswith('-'):
                 print(d[int(c[1:])])
