@@ -36,7 +36,7 @@ def min_expr(c2p, p2c):
 
     for name in packages_by_name:
         # XXX: This works with np and py by sorting the build string
-        packages_by_name[name].sort()
+        packages_by_name[name].sort(reverse=True)
 
     max_N = max((len(i) for i in packages_by_name.values()))
     min_str = ''
