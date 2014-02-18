@@ -38,11 +38,13 @@ def process_cnf_file(path):
     sys.stdout.write('vars: %6d   cls: %6d   ' % (n_vars, len(clauses)))
     sys.stdout.flush()
     n_sol = 0
-    for sol in itersolve(clauses, n_vars):
-        sys.stdout.write('.')
-        sys.stdout.flush()
-        assert evaluate(clauses, sol)
-        n_sol += 1
+    with open(path + '.sols', 'w') as f:
+        for sol in itersolve(clauses, n_vars):
+            f.write(str(sol) + '\n')
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            assert evaluate(clauses, sol)
+            n_sol += 1
     sys.stdout.write("%d\n" % n_sol)
     sys.stdout.flush()
     return n_sol
