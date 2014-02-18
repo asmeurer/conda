@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import sys
 from collections import defaultdict
 from conda.resolve import Package
 from sat_test_data import (
@@ -46,6 +46,19 @@ def min_expr(c2p, p2c):
     return min_str
 
 if __name__ == '__main__':
+    if sys.argv[1:]:
+        if sys.argv[1] == 'all':
+            d = globals()['all_solutions_clauses_to_packages' + sys.argv[2]]
+        elif sys.argv[1] == 'base':
+            d = globals()['base_clauses_to_packages' + sys.argv[2]]
+        else:
+            sys.exit("First argument should be 'all' or 'base'")
+        S = input("The solution: ")
+        for c in S.split():
+            if not c.startswith('-'):
+                print(d[int(c[1:])])
+        sys.exit()
+
     import to_dimacs
     to_dimacs.write_cnf(base_clauses1, 'base_clauses1.cnf')
     to_dimacs.write_cnf(all_solutions_clauses1, 'all_solutions_clauses1.cnf')
