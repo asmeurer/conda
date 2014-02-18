@@ -1,3 +1,5 @@
+# -*- mode: Text; -*-
+# Don't let emacs use Python mode. It's too slow
 # All commands run with the Python 3 version of conda
 
 # conda create -n test pandas=0.9 in conda master
