@@ -2,12 +2,30 @@
 
 from collections import defaultdict
 from conda.resolve import Package
-from sat_test_data import (base_clauses1, all_solutions_clauses1, base_clauses2,
-    all_solutions_clauses2, base_clauses_to_packages1,
-    base_clauses_to_packages2, all_solutions_clauses_to_packages1,
-    all_solutions_clauses_to_packages2, base_packages_to_clauses1,
-    base_packages_to_clauses2, all_solutions_packages_to_clauses1,
-    all_solutions_packages_to_clauses2, index)
+from sat_test_data import (
+    base_clauses1,
+    base_clauses_to_packages1,
+    base_packages_to_clauses1,
+    all_solutions_clauses1,
+    all_solutions_clauses_to_packages1,
+    all_solutions_packages_to_clauses1,
+
+    base_clauses2,
+    base_clauses_to_packages2,
+    base_packages_to_clauses2,
+    all_solutions_clauses2,
+    all_solutions_clauses_to_packages2,
+    all_solutions_packages_to_clauses2,
+
+    base_clauses3,
+    base_clauses_to_packages3,
+    base_packages_to_clauses3,
+    all_solutions_clauses3,
+    all_solutions_clauses_to_packages3,
+    all_solutions_packages_to_clauses3,
+
+    )
+from sat_test_data import index
 
 def min_expr(c2p, p2c):
     packages_by_name = defaultdict(list)
@@ -42,3 +60,10 @@ if __name__ == '__main__':
     to_dimacs.write_opb(base_clauses2, 'base_clauses2.opb', min_expr=expr)
     expr = min_expr(all_solutions_clauses_to_packages2, all_solutions_packages_to_clauses2)
     to_dimacs.write_opb(all_solutions_clauses2, 'all_solutions_clauses2.opb', min_expr=expr)
+
+    to_dimacs.write_cnf(base_clauses3, 'base_clauses3.cnf')
+    to_dimacs.write_cnf(all_solutions_clauses3, 'all_solutions_clauses3.cnf')
+    expr = min_expr(base_clauses_to_packages3, base_packages_to_clauses3)
+    to_dimacs.write_opb(base_clauses3, 'base_clauses3.opb', min_expr=expr)
+    expr = min_expr(all_solutions_clauses_to_packages3, all_solutions_packages_to_clauses3)
+    to_dimacs.write_opb(all_solutions_clauses3, 'all_solutions_clauses3.opb', min_expr=expr)
