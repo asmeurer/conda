@@ -2,7 +2,7 @@ language: python
 python:
   # We don't actually use the system Python but this keeps it organized.
   - "2.7"
-  - "3.3"
+  - "3.4"
 install:
   # TODO: Use a "latest" url
   - sudo apt-get update
