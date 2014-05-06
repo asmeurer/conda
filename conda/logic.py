@@ -593,7 +593,7 @@ def best_alg_heuristic(eq, rhs):
 
     """
 
-    return 'BDD'
+    return 'sorter'
 
 def bisect_constraints(min_rhs, max_rhs, clauses, func, increment=10):
     """
