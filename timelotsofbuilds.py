@@ -11,7 +11,7 @@ def main():
         print('copying')
         move_package_to_channel(i)
         t = time_conda_install()
-        print(t)
+        print(i, t)
         with open('lotsofbuildstimes', 'a') as f:
             f.write("%s %s\n" % (i, t))
 
