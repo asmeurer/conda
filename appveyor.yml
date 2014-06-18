@@ -8,6 +8,7 @@ environment:
     - PYTHON: 2.7
       PYCOSAT:
     - PYTHON: 3.4
+      # This actually runs 3.3, because that's what is in the older miniconda
       PYCOSAT: 0.6.0
     - PYTHON: 3.4
       PYCOSAT:
