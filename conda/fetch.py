@@ -17,6 +17,7 @@ from os.path import basename, isdir, join
 import sys
 import getpass
 # from multiprocessing.pool import ThreadPool
+import asyncio
 
 from conda import config
 from conda.utils import memoized
@@ -165,9 +166,11 @@ Allowed channels are:
   - %s
 """ % (url, '\n  - '.join(config.allowed_channels)))
 
-    repodatas = map(lambda url: (url, fetch_repodata(url,
-        use_cache=use_cache, session=session)), reversed(channel_urls))
-    for url, repodata in repodatas:
+    loop = asyncio.get_event_loop()
+    repodatas = loop.run_until_complete(get_repodatas(channel_urls,
+        use_cache=use_cache, session=session))
+
+    for url, repodata in zip(reversed(channel_urls), repodatas):
         if repodata is None:
             continue
         new_index = repodata['packages']
@@ -194,6 +197,20 @@ Allowed channels are:
                 index[fn] = meta
 
     return index
+
+@asyncio.coroutine
+def get_repodatas(channel_urls, use_cache=None, session=None):
+    session = session or CondaSession()
+    loop = asyncio.get_event_loop()
+
+    results = []
+    for url in channel_urls:
+        future = loop.run_in_executor(None, fetch_repodata, url,
+            None, use_cache, session)
+        result = yield from future
+        results.append(result)
+
+    return results
 
 def fetch_pkg(info, dst_dir=None, session=None):
     '''
