@@ -13,7 +13,7 @@ import shutil
 import hashlib
 import tempfile
 from logging import getLogger
-from os.path import basename, isdir, join
+from os.path import basename, dirname, isdir, join
 import sys
 import getpass
 # from multiprocessing.pool import ThreadPool
@@ -21,8 +21,8 @@ import asyncio
 
 from conda import config
 from conda.utils import memoized
-from conda.connection import CondaSession, unparse_url
-from conda.compat import itervalues, get_http_value, input
+from conda.connection import CondaSession, unparse_url, RETRIES
+from conda.compat import itervalues, get_http_value, input, urllib_quote
 from conda.lock import Locked
 
 import requests
@@ -94,7 +94,8 @@ def fetch_repodata(url, cache_dir=None, use_cache=False, session=None):
                                   use_cache=use_cache, session=session)
         if e.response.status_code == 404:
             if url.startswith(config.DEFAULT_CHANNEL_ALIAS):
-                msg = 'Could not find Binstar user %s' % url.split(config.DEFAULT_CHANNEL_ALIAS)[1].split('/')[0]
+                msg = ('Could not find Binstar user %s' %
+                   url.split(config.DEFAULT_CHANNEL_ALIAS)[1].split('/')[0])
             else:
                 msg = 'Could not find URL: %s' % url
         else:
@@ -142,6 +143,7 @@ def handle_proxy_407(url, session):
 
 def add_username_and_pass_to_url(url, username, passwd):
     urlparts = list(requests.packages.urllib3.util.url.parse_url(url))
+    passwd = urllib_quote(passwd, '')
     urlparts[1] = username + ':' + passwd
     return unparse_url(urlparts)
 
@@ -229,11 +231,14 @@ def fetch_pkg(info, dst_dir=None, session=None):
     download(url, path, session=session, md5=info['md5'], urlstxt=True)
 
 
-def download(url, dst_path, session=None, md5=None, urlstxt=False):
+def download(url, dst_path, session=None, md5=None, urlstxt=False,
+             retries=None):
     pp = dst_path + '.part'
-    dst_dir = os.path.split(dst_path)[0]
+    dst_dir = dirname(dst_path)
     session = session or CondaSession()
 
+    if retries is None:
+        retries = RETRIES
     with Locked(dst_dir):
         try:
             resp = session.get(url, stream=True, proxies=session.proxies,
@@ -244,21 +249,22 @@ def download(url, dst_path, session=None, md5=None, urlstxt=False):
                 handle_proxy_407(url, session)
                 # Try again
                 return download(url, dst_path, session=session, md5=md5,
-                                urlstxt=urlstxt)
+                                urlstxt=urlstxt, retries=retries)
             msg = "HTTPError: %s: %s\n" % (e, url)
             log.debug(msg)
             raise RuntimeError(msg)
 
         except requests.exceptions.ConnectionError as e:
-            # requests isn't so nice here. For whatever reason, https gives this
-            # error and http gives the above error. Also, there is no status_code
-            # attribute here. We have to just check if it looks like 407.  See
-            # https://github.com/kennethreitz/requests/issues/2061.
+            # requests isn't so nice here. For whatever reason, https gives
+            # this error and http gives the above error. Also, there is no
+            # status_code attribute here.  We have to just check if it looks
+            # like 407.
+            # See: https://github.com/kennethreitz/requests/issues/2061.
             if "407" in str(e): # Proxy Authentication Required
                 handle_proxy_407(url, session)
-                # Try again
+                # try again
                 return download(url, dst_path, session=session, md5=md5,
-                    urlstxt=urlstxt)
+                                urlstxt=urlstxt, retries=retries)
             msg = "Connection error: %s: %s\n" % (e, url)
             stderrlog.info('Could not connect to %s\n' % url)
             log.debug(msg)
@@ -288,22 +294,34 @@ def download(url, dst_path, session=None, md5=None, urlstxt=False):
                     n += len(chunk)
                     if size:
                         getLogger('fetch.update').info(n)
-        except IOError:
-            raise RuntimeError("Could not open %r for writing.  "
-                "Permissions problem or missing directory?" % pp)
+        except IOError as e:
+            if e.errno == 104 and retries: # Connection reset by pee
+                # try again
+                log.debug("%s, trying again" % e)
+                return download(url, dst_path, session=session, md5=md5,
+                                urlstxt=urlstxt, retries=retries - 1)
+            raise RuntimeError("Could not open %r for writing (%s).  "
+                               "Permissions problem or missing directory?" %
+                               (pp, e))
 
         if size:
             getLogger('fetch.stop').info(None)
 
         if md5 and h.hexdigest() != md5:
+            if retries:
+                # try again
+                log.debug("MD5 sums mismatch for download: %s (%s != %s), "
+                          "trying again" % (url, h.hexdigest(), md5))
+                return download(url, dst_path, session=session, md5=md5,
+                                urlstxt=urlstxt, retries=retries - 1)
             raise RuntimeError("MD5 sums mismatch for download: %s (%s != %s)"
                                % (url, h.hexdigest(), md5))
 
         try:
             os.rename(pp, dst_path)
         except OSError as e:
-            raise RuntimeError("Could not rename %r to %r: %r" % (pp,
-                dst_path, e))
+            raise RuntimeError("Could not rename %r to %r: %r" %
+                               (pp, dst_path, e))
 
         if urlstxt:
             try:
@@ -311,6 +329,7 @@ def download(url, dst_path, session=None, md5=None, urlstxt=False):
                     fa.write('%s\n' % url)
             except IOError:
                 pass
+
 
 class TmpDownload(object):
     """
