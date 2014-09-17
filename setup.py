@@ -48,7 +48,14 @@ if add_activate:
     if sys.platform == 'win32':
         kwds['scripts'].extend(['bin/activate.bat', 'bin/deactivate.bat'])
     else:
-        kwds['scripts'].extend(['bin/activate', 'bin/deactivate'])
+        if (os.path.exists(os.path.join(sys.prefix, 'bin', 'activate'))
+            or os.path.exists(os.path.join(sys.prefix, 'bin', 'deactivate'))):
+
+            print("bin/activate already exists, installing as activate-conda")
+            kwds['scripts'].extend(['bin/activate-conda', 'bin/deactivate-conda'])
+        else:
+            print("installing activate and deactivate")
+            kwds['scripts'].extend(['bin/activate', 'bin/deactivate'])
 
 setup(
     name = "conda",
