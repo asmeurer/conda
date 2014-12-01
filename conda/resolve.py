@@ -228,12 +228,19 @@ class Resolve(object):
     def __init__(self, index):
         self.index = index
         self.groups = defaultdict(list)  # map name to list of filenames
+        self.channel_groups = defaultdict(list)
         for fn, info in iteritems(index):
             self.groups[info['name']].append(fn)
+            if '/' in fn.rsplit('-', 2)[0]:
+                self.channel_groups[info['canonical_channel'] + '/' + info['name']].append(fn)
         self.msd_cache = {}
 
     def find_matches(self, ms):
-        for fn in sorted(self.groups[ms.name]):
+        if '/' in ms.name:
+            groups = self.channel_groups
+        else:
+            groups = self.groups
+        for fn in sorted(groups[ms.name]):
             if ms.match(fn):
                 yield fn
 

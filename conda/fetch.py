@@ -220,7 +220,11 @@ Allowed channels are:
         new_index = repodata['packages']
         for info in itervalues(new_index):
             info['channel'] = url
-        index.update(new_index)
+            info['canonical_channel'] = config.canonical_channel_name(url)
+        new_index2 = new_index.copy()
+        for pkg in new_index:
+            new_index2[new_index[pkg]['canonical_channel'] + '/' + pkg] = new_index[pkg]
+        index.update(new_index2)
     stdoutlog.info('\n')
     if unknown:
         for pkgs_dir in config.pkgs_dirs:
