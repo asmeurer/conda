@@ -320,16 +320,16 @@ class Resolve(object):
         for fn in dists:
             groups[self.index[fn]['name']].append(fn)
 
-        for filenames in itervalues(groups):
-            # ensure packages with the same name conflict
-            for fn1 in filenames:
-                v1 = v[fn1]
-                for fn2 in filenames:
-                    v2 = v[fn2]
-                    if v1 < v2:
-                        # NOT (fn1 AND fn2)
-                        # e.g. NOT (numpy-1.6 AND numpy-1.7)
-                        yield (-v1, -v2)
+        # for filenames in itervalues(groups):
+        #     # ensure packages with the same name conflict
+        #     for fn1 in filenames:
+        #         v1 = v[fn1]
+        #         for fn2 in filenames:
+        #             v2 = v[fn2]
+        #             if v1 < v2:
+        #                 # NOT (fn1 AND fn2)
+        #                 # e.g. NOT (numpy-1.6 AND numpy-1.7)
+        #                 yield (-v1, -v2)
 
         for fn1 in dists:
             for ms in self.ms_depends(fn1):
@@ -504,13 +504,16 @@ class Resolve(object):
             w[i + 1] = fn
         m = i + 1
 
+        print(w)
         clauses = set(self.gen_clauses(v, dists, specs, features))
+        print(clauses)
         if not clauses:
             if returnall:
                 return [[]]
             return []
         eq, max_rhs = self.generate_version_eq(v, dists)
-
+        print(eq, max_rhs)
+        exit(1)
 
         # Second common case, check if it's unsatisfiable
         dotlog.debug("Checking for unsatisfiability")
